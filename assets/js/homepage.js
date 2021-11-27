@@ -2,6 +2,7 @@ var userFormEl = document.querySelector("#user-form");
 var nameInputEl = document.querySelector("#username");
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
+var languageButtonsEl = document.querySelector("#language-buttons");
 
 var formSubmitHandler = function(event) {
   event.preventDefault();
@@ -12,9 +13,22 @@ var formSubmitHandler = function(event) {
 
   if (username) {
     getUserRepos(username);
+    
+    repoContainerEl.textContent = "";
     nameInputEl.value = "";
   } else {
     alert("Please enter a GitHub username");
+  }
+};
+
+var buttonClickHandler = function(event) {
+  var language = event.target.getAttribute("data-language");
+  console.log(language);
+  if (language) {
+    getFeaturedRepos(language);
+
+    // clear old content
+    repoContainerEl.textContent = "";
   }
 };
 
@@ -25,7 +39,9 @@ var getUserRepos = function(user) {
   // make a request to the url
   fetch(apiUrl).then(function(response) {
     if (response.ok) {
+      console.log(response);
     response.json().then(function(data) {
+      console.log(data);
       displayRepos(data, user);
     });
   } else {
@@ -36,6 +52,22 @@ var getUserRepos = function(user) {
     // Notice this '.catch()' getting chained onto the end of the '.then()' method
     alert("Unable to connect to GitHub");
   });
+};
+
+  var getFeaturedRepos = function(language) {
+    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+
+    fetch(apiUrl).then(function(response) {
+      if (response.ok) {
+        response.json().then(function(data) {
+          displayRepos(data.items, language);
+        });
+        console.log(response);
+      } else {
+        alert('Error: GitHub User Not Found');
+      }
+    });
+  };
 
 var displayRepos = function(repos, searchTerm) {
   // check if api returned any repos
@@ -81,6 +113,6 @@ for (var i = 0; i < repos.length; i++) {
   repoContainerEl.appendChild(repoEl);
 }
 };
-};
 
 userFormEl.addEventListener("submit", formSubmitHandler);
+languageButtonsEl.addEventListener("click", buttonClickHandler);
